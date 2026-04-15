@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Launcher</title>
+    <style>
+        body {
+            background-color: #0f0f0f;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        
+        .launch-btn {
+            padding: 16px 45px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            background: #00008B;
+            color: #808080;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .launch-btn:hover {
+            background: #00009B;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0, 0, 155, 1);
+            color: #d3d3d3;
+            font-size: 1.2rem;
+        }
+
+        /* Hidden file input */
+        #file-input {
+            display: none;
+        }
+
+        .status-text {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <input type="file" id="file-input" accept=".html,.txt" />
+
+    <button class="launch-btn" onclick="triggerSelection()">Select & Launch App</button>
+    
+    <div class="status-text">Select your .html file to launch it in a clean tab</div>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+
+        // Step 1: Open the file picker when button is clicked
+        function triggerSelection() {
+            fileInput.click();
+        }
+
+        // Step 2: Handle the file once it's selected
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const fileContent = e.target.result;
+                launchTab(fileContent);
+            };
+
+            reader.readAsText(file);
+        });
+
+        // Step 3: Open in new tab
+        function launchTab(content) {
+            const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+            const blobUrl = URL.createObjectURL(blob);
+            
+            const newWin = window.open('about:blank', '_blank');
+
+            if (newWin) {
+                newWin.location.href = blobUrl;
+                // Clean up memory
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+            } else {
+                alert("Pop-up blocked! Please allow pop-ups to launch the app.");
+            }
+            
+            // Reset input so you can select the same file again if needed
+            fileInput.value = '';
+        }
+    </script>
+
+</body>
+</html>
