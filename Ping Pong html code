@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoomed Out Pong</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevents scrollbars */
+        }
+        canvas {
+            border: 2px solid #555;
+            background-color: #000;
+            /* This makes it responsive while keeping the internal resolution high */
+            max-width: 95vw;
+            max-height: 80vh;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="pongCanvas" width="1200" height="600"></canvas>
+
+<script>
+    const canvas = document.getElementById("pongCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Game Constants
+    const paddleWidth = 12;
+    const paddleHeight = 100;
+    const ballSize = 6;
+    const initialBallSpeed = 7;
+
+    // Game State
+    let playerY = (canvas.height - paddleHeight) / 2;
+    let aiY = (canvas.height - paddleHeight) / 2;
+    let ballX, ballY, ballSpeedX, ballSpeedY;
+    
+    let playerScore = 0;
+    let aiScore = 0;
+
+    // Initialize Ball in the center
+    function resetBall() {
+        ballX = canvas.width / 2;
+        ballY = canvas.height / 2;
+        // Flip direction on reset, but keep speed consistent
+        ballSpeedX = (ballSpeedX > 0 ? -1 : 1) * initialBallSpeed;
+        ballSpeedY = (Math.random() * 2 - 1) * initialBallSpeed; // Random vertical angle
+    }
+
+    // Set initial position
+    resetBall();
+
+    // Input Handling
+    canvas.addEventListener("mousemove", (e) => {
+        let rect = canvas.getBoundingClientRect();
+        // Calculate scale in case the canvas is CSS-resized
+        let scaleY = canvas.height / rect.height;
+        playerY = (e.clientY - rect.top) * scaleY - paddleHeight / 2;
+    });
+
+    function update() {
+        ballX += ballSpeedX;
+        ballY += ballSpeedY;
+
+        // Top and Bottom Wall Bounce
+        if (ballY <= 0 || ballY >= canvas.height) {
+            ballSpeedY *= -1;
+        }
+
+        // AI Logic: Smoother tracking
+        let aiTarget = ballY - paddleHeight / 2;
+        aiY += (aiTarget - aiY) * 0.12; // 0.12 is the "reactivity"
+
+        // Player Collision
+        if (ballX <= paddleWidth) {
+            if (ballY > playerY && ballY < playerY + paddleHeight) {
+                ballSpeedX = Math.abs(ballSpeedX); // Bounce right
+                ballSpeedY = (ballY - (playerY + paddleHeight / 2)) * 0.25;
+            } else if (ballX < 0) {
+                aiScore++;
+                resetBall();
+            }
+        }
+
+        // AI Collision
+        if (ballX >= canvas.width - paddleWidth) {
+            if (ballY > aiY && ballY < aiY + paddleHeight) {
+                ballSpeedX = -Math.abs(ballSpeedX); // Bounce left
+                ballSpeedY = (ballY - (aiY + paddleHeight / 2)) * 0.25;
+            } else if (ballX > canvas.width) {
+                playerScore++;
+                resetBall();
+            }
+        }
+    }
+
+    function draw() {
+        // Clear background
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Center line (Net)
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+        ctx.setLineDash([15, 15]);
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.stroke();
+
+        // Score display
+        ctx.fillStyle = "white";
+        ctx.font = "bold 48px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(playerScore, canvas.width * 0.25, 60);
+        ctx.fillText(aiScore, canvas.width * 0.75, 60);
+
+        // Paddles
+        ctx.fillRect(0, playerY, paddleWidth, paddleHeight);
+        ctx.fillRect(canvas.width - paddleWidth, aiY, paddleWidth, paddleHeight);
+
+        // Ball
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+    }
+
+    loop();
+</script>
+</body>
+</html>
