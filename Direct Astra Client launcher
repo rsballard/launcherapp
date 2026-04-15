@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astra Launcher</title>
+    <style>
+        body {
+            background-color: #0f0f0f;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .card {
+            background: #1a1a1a;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .launch-btn {
+            padding: 16px 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff4500, #ff8c00);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .launch-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 69, 0, 0.6);
+        }
+
+        #status-msg {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <button class="launch-btn" onclick="initiateLaunch()">Launch Client</button>
+        <div id="status-msg">Click to begin deployment</div>
+    </div>
+
+    <script>
+        function initiateLaunch() {
+            const msg = document.getElementById('status-msg');
+            const videoUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&controls=0&enablejsapi=1&rel=0";
+
+            // Open the new tab
+            const clientWin = window.open('about:blank', '_blank');
+
+            if (clientWin) {
+                // Inject the White Box and the Video into the new tab
+                clientWin.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <title>Astra Client System</title>
+                        <style>
+                            body, html { 
+                                margin: 0; padding: 0; height: 100%; width: 100%; 
+                                overflow: hidden; background: #000; 
+                                font-family: 'Arial', sans-serif;
+                            }
+                            
+                            #click-mask {
+                                position: fixed;
+                                top: 0; left: 0;
+                                width: 100%; height: 100%;
+                                background: white;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                z-index: 1000;
+                                cursor: pointer;
+                                transition: opacity 0.4s ease;
+                            }
+
+                            #click-mask h1 {
+                                color: black;
+                                font-size: 2.5rem;
+                                border: 5px solid black;
+                                padding: 20px 40px;
+                                text-transform: uppercase;
+                                pointer-events: none;
+                            }
+
+                            iframe {
+                                width: 100vw;
+                                height: 100vh;
+                                border: none;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div id="click-mask" onclick="startEverything()">
+                            <h1>Click to Start Client</h1>
+                        </div>
+
+                        <iframe id="video-player" 
+                                src="${videoUrl}" 
+                                allow="autoplay; encrypted-media" 
+                                allowfullscreen>
+                        </iframe>
+
+                        <script>
+                            function startEverything() {
+                                const mask = document.getElementById('click-mask');
+                                const player = document.getElementById('video-player');
+                                
+                                // Hide the mask
+                                mask.style.opacity = '0';
+                                setTimeout(() => mask.style.display = 'none', 400);
+
+                                // Refreshing the SRC ensures autoplay triggers WITH audio 
+                                // now that the user has clicked on this specific page.
+                                player.src = player.src;
+                            }
+                        <\/script>
+                    </body>
+                    </html>
+                `);
+                clientWin.document.close();
+                msg.innerText = "Client tab deployed.";
+            } else {
+                msg.innerHTML = '<b style="color:#ff4500;">Pop-up Blocked!</b><br>Look at your address bar and click "Always Allow".';
+            }
+        }
+    </script>
+
+</body>
+</html>
